@@ -1,0 +1,35 @@
+﻿<!-- Modal para editar a rodada -->
+<div class="modal fade" id="editRoundModal" tabindex="-1" role="dialog" aria-labelledby="editRoundModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRoundModalLabel">Editar Rodada</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editRoundForm" method="post" action="@Url.Action("EditarRodada")">
+                    <input type="hidden" name="rodadaId" id="rodadaId" />
+
+                    <div id="partidasContainer">
+                        <!-- As partidas serão inseridas aqui via JavaScript -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="jogadorBye">Jogador de Bye</label>
+                        <select name="jogadorByeId" id="jogadorBye" class="form-select">
+                            <option value="">Selecione um jogador de bye</option>
+                            @foreach (var jogador in Model.Jogadores)
+                            {
+                                <option value="@jogador.Id">@jogador.Nome</option>
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

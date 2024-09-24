@@ -1,0 +1,39 @@
+﻿@model IEnumerable<PokeTorneio.Models.Torneio>
+
+<h2>Lista de Torneios</h2>
+<a href="@Url.Action("Criar", "Torneio")" class="btn btn-primary m-3">
+    Criar Torneio
+</a>
+<div class="row">
+   
+    @foreach (var torneio in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@torneio.Nome</h5>
+                    <p class="card-text">
+                        <strong>Data:</strong> @torneio.DataInicio.ToString("dd/MM/yyyy") <br />
+                    </p>
+                    <a asp-action="Detalhes" asp-route-id="@torneio.Id" class="btn btn-success">Ver Detalhes</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #343a40;
+    }
+
+    .card {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+</style>

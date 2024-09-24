@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Torneios";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Bem-vindo ao Gerenciador de Torneios!</h1>
+    <p class="lead">Aqui você pode criar novos torneios e listar todos os torneios existentes.</p>
+
+    <div class="mt-5">
+        <a href="@Url.Action("Criar", "Torneio")" class="btn btn-primary btn-lg mx-3">
+            Criar Torneio
+        </a>
+        <a href="@Url.Action("Index", "Torneio")" class="btn btn-success btn-lg mx-3">
+            Listar Torneios
+        </a>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #343a40;
+    }
+    .btn {
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        background-color: #0056b3; /* Muda a cor do botão ao passar o mouse */
+    }
+    .img-fluid {
+        max-width: 100%;
+        height: auto;
+        margin-top: 20px;
+    }
+</style>

@@ -1,0 +1,177 @@
+﻿@model PokeTorneio.Models.Torneio
+
+<h2 class="text-center mt-4">@Model.Nome - Detalhes do Torneio</h2>
+
+<div class="text-center mb-4">
+    <h4>Número de Rodadas: @ViewBag.NumeroDeRodadas</h4>
+    @if (Model.IsFinalizado)
+    {
+        <span class="badge bg-danger">Torneio Finalizado</span>
+    }
+</div>
+
+<h3>Jogadores:</h3>
+<ol class="list-group mb-4">
+    @foreach (var jogador in Model.Jogadores.OrderByDescending(j => j.Pontos).Select((j, index) => new { Jogador = j, Posição = index + 1 }))
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>@jogador.Posição. posição: @jogador.Jogador.Nome</span>
+            <span>
+                Pontos: @jogador.Jogador.Pontos (Vitórias: @jogador.Jogador.Vitorias, Empates: @jogador.Jogador.Empates, Derrotas: @jogador.Jogador.Derrotas)
+            </span>
+        </li>
+    }
+</ol>
+
+<div class="text-center mb-4">
+    <a asp-controller="Torneio" asp-action="AdicionarJogadores" asp-route-id="@Model.Id" class="btn btn-primary">Adicionar Jogadores</a>
+</div>
+
+<h3>Rodadas:</h3>
+@foreach (var rodada in Model.Rodadas)
+{
+    <div class="rodada mb-4">
+        <h4 class="bg-light p-3">Rodada @rodada.NumeroRodada</h4>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Jogador 1</th>
+                    <th>Jogador 2</th>
+                    <th>Resultado</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var partida in rodada.Partidas)
+                {
+                    <tr>
+                        <td>@partida.Jogador1.Nome</td>
+                        <td>@partida.Jogador2.Nome</td>
+                        <td>
+                            @if (partida.Resultado == 0)
+                            {
+                                <span class="text-warning">Empate</span>
+                            }
+                            else if (partida.Resultado == 1)
+                            {
+                                <span class="text-success">@partida.Jogador1.Nome venceu (@partida.ResultadoMelhorDe3.GetDescription())</span>
+                            }
+                            else if (partida.Resultado == 2)
+                            {
+                                <span class="text-danger">@partida.Jogador2.Nome venceu (@partida.ResultadoMelhorDe3.GetDescription())</span>
+                            }
+                        </td>
+                        <td>
+                            <form asp-action="RegistrarResultado" method="post" class="d-flex">
+                                <input type="hidden" name="partidaId" value="@partida.Id" />
+                                <select name="resultadoMelhorDe3" asp-items="ViewBag.ResultadosMelhorDe3" class="form-control">
+                                    <option value="">Selecione o Resultado</option>
+                                </select>
+                                <select name="vencedorId" class="form-select me-2" required>
+                                    <option value="@Guid.Empty">Empate</option>
+                                    <option value="@partida.Jogador1Id">@partida.Jogador1.Nome venceu</option>
+                                    <option value="@partida.Jogador2Id">@partida.Jogador2.Nome venceu</option>
+                                </select>
+                                <button type="submit" class="btn btn-success">Registrar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+
+                @if (rodada.Torneio.Jogadores.Count % 2 != 0)
+                {
+                    var jogadorDeBye = Model.Jogadores.FirstOrDefault(j => !rodada.Partidas.Any(p => p.Jogador1.Id == j.Id || p.Jogador2.Id == j.Id));
+                    if (jogadorDeBye != null)
+                    {
+                        <tr>
+                            <td colspan="3" class="bg-light">Jogador de Bye: <strong>@jogadorDeBye.Nome</strong></td>
+                            <td>-</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="d-flex justify-content-between mb-4">
+    <form asp-action="IniciarRodada" asp-route-id="@Model.Id" method="post">
+        <button type="submit" class="btn btn-warning">Iniciar Próxima Rodada</button>
+    </form>
+    <form asp-action="FinalizarTorneio" asp-route-id="@Model.Id" method="post">
+        <button type="submit" class="btn btn-danger">Finalizar Torneio</button>
+    </form>
+</div>
+
+<!-- Contagem Regressiva -->
+<div class="text-center mb-4">
+    <h3>Duração da Partida</h3>
+    <div id="cronometro">@Model.Duracao.TotalHours:00:00</div>
+    <button id="iniciarBtn" class="btn btn-success" onclick="iniciarContagemRegressiva()">Iniciar</button>
+    <button id="pausarBtn" class="btn btn-warning" onclick="pausarContagemRegressiva()" disabled>Pausar</button>
+    <button id="continuarBtn" class="btn btn-info" onclick="continuarContagemRegressiva()" disabled>Continuar</button>
+    <button id="pararBtn" class="btn btn-danger" onclick="pararContagemRegressiva()" disabled>Parar</button>
+</div>
+
+<script>
+    let tempoTotal = @Model.Duracao.TotalSeconds;
+    let tempoAtual = tempoTotal;
+    let intervalo;
+    let rodando = false;
+
+    function formatarTempo(segundos) {
+        const horas = Math.floor(segundos / 3600);
+        const minutos = Math.floor((segundos % 3600) / 60);
+        const segundosRestantes = segundos % 60;
+        return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
+    }
+
+    function atualizarContagemRegressiva() {
+        document.getElementById('cronometro').innerText = formatarTempo(tempoAtual);
+    }
+
+    function iniciarContagemRegressiva() {
+        if (!rodando && tempoAtual > 0) {
+            intervalo = setInterval(() => {
+                if (tempoAtual > 0) {
+                    tempoAtual--;
+                    atualizarContagemRegressiva();
+                } else {
+                    clearInterval(intervalo);
+                    rodando = false;
+                    alert("O tempo acabou!");
+                }
+            }, 1000);
+            rodando = true;
+            document.getElementById('iniciarBtn').disabled = true;
+            document.getElementById('pausarBtn').disabled = false;
+            document.getElementById('pararBtn').disabled = false;
+        }
+    }
+
+    function pausarContagemRegressiva() {
+        clearInterval(intervalo);
+        rodando = false;
+        document.getElementById('pausarBtn').disabled = true;
+        document.getElementById('continuarBtn').disabled = false;
+    }
+
+    function continuarContagemRegressiva() {
+        iniciarContagemRegressiva();
+        document.getElementById('continuarBtn').disabled = true;
+    }
+
+    function pararContagemRegressiva() {
+        clearInterval(intervalo);
+        rodando = false;
+        tempoAtual = tempoTotal; // Reinicia o tempo
+        atualizarContagemRegressiva();
+        document.getElementById('iniciarBtn').disabled = false;
+        document.getElementById('pausarBtn').disabled = true;
+        document.getElementById('continuarBtn').disabled = true;
+        document.getElementById('pararBtn').disabled = true;
+    }
+
+    // Inicializa a contagem regressiva com o tempo total
+    atualizarContagemRegressiva();
+</script>

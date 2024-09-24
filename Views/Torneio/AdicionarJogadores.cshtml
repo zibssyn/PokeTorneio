@@ -1,0 +1,147 @@
+﻿@model PokeTorneio.Models.Torneio
+
+<h2>Adicionar Jogadores ao Torneio: @Model.Nome</h2>
+
+<div class="container">
+    <p id="contador-jogadores" class="contador">Número de Jogadores: 1</p>
+
+    <form asp-action="SalvarJogadores" asp-route-id="@Model.Id" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div id="jogadores-container" class="jogadores-container">
+            <div class="jogador" data-index="0">
+                <label>Nome do 1º Jogador:</label>
+                <input type="text" name="jogadores[0].Nome" required />
+                <button type="button" class="btn-excluir" onclick="removerJogador(this)">Excluir</button>
+            </div>
+        </div>
+        <button type="button" class="btn-adicionar" onclick="adicionarJogador()">Adicionar Outro Jogador</button>
+        <button type="submit" class="btn-salvar">Salvar Jogadores</button>
+    </form>
+</div>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: auto;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    .contador {
+        text-align: center;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .jogadores-container {
+        margin: 20px 0;
+    }
+
+    .jogador {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .jogador label {
+        flex: 1;
+    }
+
+    .jogador input {
+        flex: 2;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+
+    .btn-excluir {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-excluir:hover {
+        background-color: #ff1a1a;
+    }
+
+    .btn-salvar{
+        background-color: dodgerblue;
+    }
+
+    .btn-adicionar{
+        background-color: #28a745;
+    }
+    .btn-adicionar, .btn-salvar {
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+        .btn-adicionar:hover, .btn-salvar:hover {
+            filter: opacity(0.8);
+        }
+
+   
+</style>
+
+<script>
+    let jogadorCount = 1;
+
+    function adicionarJogador() {
+        jogadorCount++;
+        const container = document.getElementById('jogadores-container');
+        const newDiv = document.createElement('div');
+        newDiv.className = 'jogador';
+        newDiv.setAttribute('data-index', jogadorCount - 1);
+        newDiv.innerHTML = `
+            <label>Nome do ${jogadorCount}º Jogador:</label>
+            <input type="text" name="jogadores[${jogadorCount - 1}].Nome" required />
+            <button type="button" class="btn-excluir" onclick="removerJogador(this)">Excluir</button>
+        `;
+        container.appendChild(newDiv);
+
+        // Atualiza o contador de jogadores
+        document.getElementById('contador-jogadores').innerText = `Número de Jogadores: ${jogadorCount}`;
+    }
+
+    function removerJogador(button) {
+        const jogadorDiv = button.parentElement;
+        jogadorDiv.remove();
+        jogadorCount--;
+
+        // Atualiza o contador de jogadores
+        document.getElementById('contador-jogadores').innerText = `Número de Jogadores: ${jogadorCount}`;
+
+        // Atualiza os índices dos jogadores restantes
+        const jogadores = document.querySelectorAll('.jogador');
+        jogadores.forEach((jogador, index) => {
+            const input = jogador.querySelector('input');
+            input.name = `jogadores[${index}].Nome`;
+            const label = jogador.querySelector('label');
+            label.innerText = `Nome do ${index + 1}º Jogador:`;
+            jogador.setAttribute('data-index', index);
+        });
+    }
+</script>
